@@ -6,6 +6,7 @@ cscope.*
 *.orig
 *.diff
 *.patch
+!external/bsd/llvm/patches/*.patch
 *.rej
 *.[1-9].gz
 *.o
