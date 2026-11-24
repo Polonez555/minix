@@ -1,0 +1,316 @@
+clang driver: add the Minix toolchain (ld.lld, MINIX crt files, libc++/libc++abi/libunwind),
+ported from the MINIX clang 3.6 toolchain. On i386 constructors stay in .ctors, because the
+MINIX i386 start files have no .init_array support.
+
+diff --git a/clang/lib/Driver/CMakeLists.txt b/clang/lib/Driver/CMakeLists.txt
+index 506536cdc0..b3ca9e9582 100644
+--- a/clang/lib/Driver/CMakeLists.txt
++++ b/clang/lib/Driver/CMakeLists.txt
+@@ -81,6 +81,7 @@ add_clang_library(clangDriver
+   ToolChains/MinGW.cpp
+   ToolChains/MSP430.cpp
+   ToolChains/MSVC.cpp
++  ToolChains/Minix.cpp
+   ToolChains/NetBSD.cpp
+   ToolChains/OHOS.cpp
+   ToolChains/OpenBSD.cpp
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index b01974bbe1..8ce71d8416 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -36,6 +36,7 @@
+ #include "ToolChains/Managarm.h"
+ #include "ToolChains/MinGW.h"
+ #include "ToolChains/MipsLinux.h"
++#include "ToolChains/Minix.h"
+ #include "ToolChains/NetBSD.h"
+ #include "ToolChains/OHOS.h"
+ #include "ToolChains/OpenBSD.h"
+@@ -7136,6 +7137,9 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
+     case llvm::Triple::OpenBSD:
+       TC = std::make_unique<toolchains::OpenBSD>(*this, Target, Args);
+       break;
++    case llvm::Triple::Minix:
++      TC = std::make_unique<toolchains::Minix>(*this, Target, Args);
++      break;
+     case llvm::Triple::NetBSD:
+       TC = std::make_unique<toolchains::NetBSD>(*this, Target, Args);
+       break;
+diff --git a/clang/lib/Driver/ToolChains/Minix.cpp b/clang/lib/Driver/ToolChains/Minix.cpp
+new file mode 100644
+index 0000000000..25a790bdb6
+--- /dev/null
++++ b/clang/lib/Driver/ToolChains/Minix.cpp
+@@ -0,0 +1,188 @@
++//===--- Minix.cpp - Minix ToolChain Implementations ------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++//
++// Port of the MINIX clang 3.6 toolchain, linking with ld.lld and the
++// LLVM runtimes (libc++, libc++abi, libunwind). compiler-rt builtins are
++// part of MINIX libc, so no separate runtime library is linked.
++//
++//===----------------------------------------------------------------------===//
++
++#include "Minix.h"
++#include "clang/Driver/CommonArgs.h"
++#include "clang/Driver/Compilation.h"
++#include "clang/Driver/Driver.h"
++#include "clang/Options/Options.h"
++#include "llvm/Option/ArgList.h"
++#include "llvm/Support/Path.h"
++
++using namespace clang::driver;
++using namespace clang::driver::tools;
++using namespace clang::driver::toolchains;
++using namespace clang;
++using namespace llvm::opt;
++
++void minix::Linker::ConstructJob(Compilation &C, const JobAction &JA,
++                                 const InputInfo &Output,
++                                 const InputInfoList &Inputs,
++                                 const ArgList &Args,
++                                 const char *LinkingOutput) const {
++  const auto &ToolChain = static_cast<const Minix &>(getToolChain());
++  const Driver &D = ToolChain.getDriver();
++  const bool Static = Args.hasArg(options::OPT_static);
++  const bool Shared = Args.hasArg(options::OPT_shared);
++  ArgStringList CmdArgs;
++
++  if (!D.SysRoot.empty())
++    CmdArgs.push_back(Args.MakeArgString("--sysroot=" + D.SysRoot));
++
++  CmdArgs.push_back("--eh-frame-hdr");
++  if (Static) {
++    CmdArgs.push_back("-Bstatic");
++  } else {
++    if (Args.hasArg(options::OPT_rdynamic))
++      CmdArgs.push_back("-export-dynamic");
++    if (Shared) {
++      CmdArgs.push_back("-Bshareable");
++    } else if (!Args.hasArg(options::OPT_r)) {
++      CmdArgs.push_back("-dynamic-linker");
++      CmdArgs.push_back("/usr/libexec/ld.elf_so");
++    }
++  }
++
++  assert((Output.isFilename() || Output.isNothing()) && "Invalid output.");
++  if (Output.isFilename()) {
++    CmdArgs.push_back("-o");
++    CmdArgs.push_back(Output.getFilename());
++  }
++
++  const bool StartFiles =
++      !Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
++                   options::OPT_r);
++  if (StartFiles) {
++    if (!Shared)
++      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crt0.o")));
++    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crti.o")));
++    CmdArgs.push_back(Args.MakeArgString(
++        ToolChain.GetFilePath(Shared ? "crtbeginS.o" : "crtbegin.o")));
++  }
++
++  Args.addAllArgs(CmdArgs,
++                  {options::OPT_L, options::OPT_T_Group, options::OPT_e,
++                   options::OPT_s, options::OPT_t, options::OPT_Z_Flag,
++                   options::OPT_r});
++  ToolChain.AddFilePathLibArgs(Args, CmdArgs);
++
++  AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
++
++  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
++                   options::OPT_r)) {
++    if (D.CCCIsCXX()) {
++      if (ToolChain.ShouldLinkCXXStdlib(Args))
++        ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
++      CmdArgs.push_back("-lm");
++      // As with clang 3.6: the C++ runtime may use libmthread.
++      CmdArgs.push_back("-lmthread");
++    }
++
++    // Silence warnings when linking C code with a C++ '-stdlib' argument.
++    Args.ClaimAllArgs(options::OPT_stdlib_EQ);
++
++    if (Args.hasArg(options::OPT_pthread))
++      CmdArgs.push_back("-lpthread");
++    CmdArgs.push_back("-lc");
++  }
++
++  if (StartFiles) {
++    CmdArgs.push_back(Args.MakeArgString(
++        ToolChain.GetFilePath(Shared ? "crtendS.o" : "crtend.o")));
++    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtn.o")));
++  }
++
++  ToolChain.addProfileRTLibs(Args, CmdArgs);
++
++  const char *Exec = Args.MakeArgString(ToolChain.GetLinkerPath());
++  C.addCommand(std::make_unique<Command>(JA, *this,
++                                         ResponseFileSupport::AtFileCurCP(),
++                                         Exec, CmdArgs, Inputs, Output));
++}
++
++Minix::Minix(const Driver &D, const llvm::Triple &Triple, const ArgList &Args)
++    : Generic_ELF(D, Triple, Args) {
++  if (!Args.hasArg(options::OPT_nostdlib)) {
++    if (Triple.getArch() == llvm::Triple::x86)
++      getFilePaths().push_back(concat(getDriver().SysRoot, "/usr/lib/i386"));
++    getFilePaths().push_back(concat(getDriver().SysRoot, "/usr/lib"));
++  }
++}
++
++Tool *Minix::buildLinker() const { return new tools::minix::Linker(*this); }
++
++void Minix::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
++                                      ArgStringList &CC1Args) const {
++  const Driver &D = getDriver();
++
++  if (DriverArgs.hasArg(options::OPT_nostdinc))
++    return;
++
++  if (!DriverArgs.hasArg(options::OPT_nobuiltininc)) {
++    SmallString<128> Dir(D.ResourceDir);
++    llvm::sys::path::append(Dir, "include");
++    addSystemInclude(DriverArgs, CC1Args, Dir.str());
++  }
++
++  if (DriverArgs.hasArg(options::OPT_nostdlibinc))
++    return;
++
++  // Like clang 3.6 on MINIX: no /usr/local/include.
++  addExternCSystemInclude(DriverArgs, CC1Args,
++                          concat(D.SysRoot, "/usr/include"));
++}
++
++void Minix::addLibCxxIncludePaths(const ArgList &DriverArgs,
++                                  ArgStringList &CC1Args) const {
++  addSystemInclude(DriverArgs, CC1Args,
++                   concat(getDriver().SysRoot, "/usr/include/c++/v1"));
++}
++
++void Minix::addLibStdCxxIncludePaths(const ArgList &DriverArgs,
++                                     ArgStringList &CC1Args) const {
++  addLibStdCXXIncludePaths(concat(getDriver().SysRoot, "/usr/include/g++"), "",
++                           "", DriverArgs, CC1Args);
++}
++
++void Minix::AddCXXStdlibLibArgs(const ArgList &Args,
++                                ArgStringList &CmdArgs) const {
++  switch (GetCXXStdlibType(Args)) {
++  case ToolChain::CST_Libcxx:
++    CmdArgs.push_back("-lc++");
++    CmdArgs.push_back("-lc++abi");
++    CmdArgs.push_back("-lunwind");
++    break;
++  case ToolChain::CST_Libstdcxx:
++    CmdArgs.push_back("-lstdc++");
++    break;
++  }
++}
++
++llvm::ExceptionHandling Minix::GetExceptionModel(const ArgList &Args) const {
++  // MINIX uses DWARF exceptions on ARM, like NetBSD.
++  if (getTriple().isARM() || getTriple().isThumb())
++    return llvm::ExceptionHandling::DwarfCFI;
++  return llvm::ExceptionHandling::None;
++}
++
++void Minix::addClangTargetOptions(const ArgList &DriverArgs,
++                                  ArgStringList &CC1Args, BoundArch BA,
++                                  Action::OffloadKind) const {
++  // The MINIX i386 start files only run .ctors; ARM start files only run
++  // .init_array.  lld does not move .ctors into .init_array.
++  if (!DriverArgs.hasFlag(options::OPT_fuse_init_array,
++                          options::OPT_fno_use_init_array,
++                          !getTriple().isX86()))
++    CC1Args.push_back("-fno-use-init-array");
++}
+diff --git a/clang/lib/Driver/ToolChains/Minix.h b/clang/lib/Driver/ToolChains/Minix.h
+new file mode 100644
+index 0000000000..238b665ca2
+--- /dev/null
++++ b/clang/lib/Driver/ToolChains/Minix.h
+@@ -0,0 +1,78 @@
++//===--- Minix.h - Minix ToolChain Implementations --------------*- C++ -*-===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef LLVM_CLANG_LIB_DRIVER_TOOLCHAINS_MINIX_H
++#define LLVM_CLANG_LIB_DRIVER_TOOLCHAINS_MINIX_H
++
++#include "Gnu.h"
++#include "clang/Driver/Tool.h"
++#include "clang/Driver/ToolChain.h"
++
++namespace clang {
++namespace driver {
++namespace tools {
++
++/// Link with ld.lld, using the MINIX start files and libraries.
++namespace minix {
++class LLVM_LIBRARY_VISIBILITY Linker final : public Tool {
++public:
++  Linker(const ToolChain &TC) : Tool("minix::Linker", "linker", TC) {}
++
++  bool hasIntegratedCPP() const override { return false; }
++  bool isLinkJob() const override { return true; }
++
++  void ConstructJob(Compilation &C, const JobAction &JA,
++                    const InputInfo &Output, const InputInfoList &Inputs,
++                    const llvm::opt::ArgList &TCArgs,
++                    const char *LinkingOutput) const override;
++};
++} // end namespace minix
++} // end namespace tools
++
++namespace toolchains {
++
++class LLVM_LIBRARY_VISIBILITY Minix : public Generic_ELF {
++public:
++  Minix(const Driver &D, const llvm::Triple &Triple,
++        const llvm::opt::ArgList &Args);
++
++  const char *getDefaultLinker() const override { return "ld.lld"; }
++
++  CXXStdlibType GetDefaultCXXStdlibType() const override {
++    return ToolChain::CST_Libcxx;
++  }
++
++  void
++  AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
++                            llvm::opt::ArgStringList &CC1Args) const override;
++  void addLibCxxIncludePaths(
++      const llvm::opt::ArgList &DriverArgs,
++      llvm::opt::ArgStringList &CC1Args) const override;
++  void addLibStdCxxIncludePaths(
++      const llvm::opt::ArgList &DriverArgs,
++      llvm::opt::ArgStringList &CC1Args) const override;
++  void AddCXXStdlibLibArgs(const llvm::opt::ArgList &Args,
++                           llvm::opt::ArgStringList &CmdArgs) const override;
++
++  llvm::ExceptionHandling GetExceptionModel(
++      const llvm::opt::ArgList &Args) const override;
++
++  void
++  addClangTargetOptions(const llvm::opt::ArgList &DriverArgs,
++                        llvm::opt::ArgStringList &CC1Args, BoundArch BA,
++                        Action::OffloadKind DeviceOffloadKind) const override;
++
++protected:
++  Tool *buildLinker() const override;
++};
++
++} // end namespace toolchains
++} // end namespace driver
++} // end namespace clang
++
++#endif // LLVM_CLANG_LIB_DRIVER_TOOLCHAINS_MINIX_H
