@@ -46,9 +46,6 @@ CLEANFILES+=	${PROG}.tmp
 
 LOADADDR=	0x8800
 
-AFLAGS.mbr.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.gpt.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-
 .if defined(__MINIX)
 CPPFLAGS+= -DLOADADDR=${LOADADDR}
 .endif # defined(__MINIX)

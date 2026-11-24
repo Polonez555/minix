@@ -2,10 +2,6 @@
 
 S=	${.CURDIR}/../../../../..
 
-AFLAGS.bootxx.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.label.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.pbr.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-
 PIE_CFLAGS=
 PIE_LDFLAGS=
 PIE_AFLAGS=

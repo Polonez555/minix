@@ -7,8 +7,6 @@ PROG?= boot
 NEWVERSWHAT?= "BIOS Boot"
 VERSIONFILE?= ${.CURDIR}/../version
 
-AFLAGS.biosboot.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-
 SOURCES?= biosboot.S boot2.c conf.c devopen.c exec.c
 SRCS= ${SOURCES}
 .if !make(depend)

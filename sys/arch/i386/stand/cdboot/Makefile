@@ -2,7 +2,6 @@
 
 S=		${.CURDIR}/../../../..
 
-AFLAGS.cdboot.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
 .if defined(__MINIX)
 USE_BITCODE=no
 .endif # defined(__MINIX)
