@@ -1,0 +1,26 @@
+Default CPUs for Minix: i586 on x86 and cortex-a8 for ARMv7, as with clang 3.6.
+
+diff --git a/clang/lib/Driver/ToolChains/Arch/X86.cpp b/clang/lib/Driver/ToolChains/Arch/X86.cpp
+index d0108e5d99..2781a76676 100644
+--- a/clang/lib/Driver/ToolChains/Arch/X86.cpp
++++ b/clang/lib/Driver/ToolChains/Arch/X86.cpp
+@@ -108,6 +108,7 @@ std::string x86::getX86TargetCPU(const Driver &D, const ArgList &Args,
+   case llvm::Triple::NetBSD:
+     return "i486";
+   case llvm::Triple::Haiku:
++  case llvm::Triple::Minix:
+   case llvm::Triple::OpenBSD:
+     return "i586";
+   default:
+diff --git a/llvm/lib/TargetParser/ARMTargetParser.cpp b/llvm/lib/TargetParser/ARMTargetParser.cpp
+index 709e5f05e3..6dc525c977 100644
+--- a/llvm/lib/TargetParser/ARMTargetParser.cpp
++++ b/llvm/lib/TargetParser/ARMTargetParser.cpp
+@@ -603,6 +603,7 @@ StringRef ARM::getARMCPUForArch(const llvm::Triple &Triple, StringRef MArch) {
+   case llvm::Triple::NetBSD:
+   case llvm::Triple::OpenBSD:
+   case llvm::Triple::Haiku:
++  case llvm::Triple::Minix:
+     if (!MArch.empty() && MArch == "v6")
+       return "arm1176jzf-s";
+     if (!MArch.empty() && MArch == "v7")
