@@ -33,6 +33,10 @@ BINMODE=	444
 .PATH:		${.CURDIR}/..
 
 LDFLAGS+=	-nostdlib -Wl,-e,start
+.if defined(__MINIX)
+# ld.lld refuses addresses below its default image base without this.
+LDFLAGS+=	-Wl,--image-base=0
+.endif # defined(__MINIX)
 CPPFLAGS+=	-I. -I${.CURDIR}/../lib -I${S}
 CPPFLAGS+=	-DPRIMARY_LOAD_ADDRESS=${PRIMARY_LOAD_ADDRESS}
 CPPFLAGS+=	-DSECONDARY_LOAD_ADDRESS=${SECONDARY_LOAD_ADDRESS}

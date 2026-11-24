@@ -33,6 +33,10 @@ BINMODE=444
 .PATH:	${.CURDIR}/.. ${.CURDIR}/../../lib
 
 LDFLAGS+= -nostdlib -Wl,-N -Wl,-e,boot_start
+.if defined(__MINIX)
+# ld.lld refuses addresses below its default image base without this.
+LDFLAGS+=	-Wl,--image-base=0
+.endif # defined(__MINIX)
 CPPFLAGS+= -I ${.CURDIR}/..  -I ${.CURDIR}/../../lib -I ${S}/lib/libsa
 CPPFLAGS+= -I ${.OBJDIR}
 # Make sure we override any optimization options specified by the user
@@ -149,7 +153,7 @@ vers.c: ${VERSIONFILE} ${SOURCES} ${LIBLIST} ${.CURDIR}/../Makefile.boot
 # explicitly pull in the required objects before any other library code.
 ${PROG}: ${OBJS} ${LIBLIST} ${LDSCRIPT} ${.CURDIR}/../Makefile.boot
 	${_MKTARGET_LINK}
-	bb="$$( ${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,--section-start=.text=0 -Wl,-cref \
+	bb="$$( ${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,--section-start=.text=0 -Wl,--cref \
 	    ${OBJS} ${LIBLIST} | ( \
 		while read symbol file; do \
 			[ -z "$$file" ] && continue; \
@@ -166,7 +170,7 @@ ${PROG}: ${OBJS} ${LIBLIST} ${LDSCRIPT} ${.CURDIR}/../Makefile.boot
 		done; \
 	) )"; \
 	${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,--section-start=.text=0 -T ${LDSCRIPT} \
-		-Wl,-Map,${PROG}.map -Wl,-cref ${OBJS} $$bb ${LIBLIST}
+		-Wl,-Map,${PROG}.map -Wl,--cref ${OBJS} $$bb ${LIBLIST}
 	${OBJCOPY} -O binary ${PROG}.sym ${PROG}
 
 .include <bsd.prog.mk>
