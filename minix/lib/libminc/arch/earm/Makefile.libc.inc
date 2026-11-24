@@ -79,7 +79,7 @@ CLEANFILES+= ${f}
 
 .for f in \
 	aeabi_uidivmod.o aeabi_ldivmod.o aeabi_uldivmod.o aeabi_idivmod.o
-${f} ${f:C/\.o/.go/}:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/${f:C/\.o/.S/}
+${f} ${f:C/\.o/.go/}:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/${f:C/\.o/.S/}
 OBJS+=	${f}
 CLEANFILES+= ${f}
 .endfor

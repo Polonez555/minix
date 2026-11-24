@@ -33,16 +33,16 @@ strcmp.o:	${NETBSDSRCDIR}/common/lib/libc/arch/arm/string/strcmp.S
 __aeabi_idiv0.o:	${NETBSDSRCDIR}/common/lib/libc/arch/arm/gen/__aeabi_idiv0.c
 CPPFLAGS.__aeabi_idiv0.c+= -D_STANDALONE -I${NETBSDSRCDIR}/sys
 
-divsi3.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/divsi3.c
-udivsi3.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/udivsi3.c
-umodsi3.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/umodsi3.c
-umoddi3.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/umoddi3.c
-udivmoddi4.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/udivmoddi4.c
-divmodsi4.o:		${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/divmodsi4.S
-udivmodsi4.o:		${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/udivmodsi4.S
-aeabi_idivmod.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/aeabi_idivmod.S
-aeabi_uidivmod.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/aeabi_uidivmod.S
-aeabi_uldivmod.o:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/arm/aeabi_uldivmod.S
+divsi3.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/divsi3.c
+udivsi3.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/udivsi3.c
+umodsi3.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/umodsi3.c
+umoddi3.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/umoddi3.c
+udivmoddi4.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/udivmoddi4.c
+divmodsi4.o:		${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/divmodsi4.S
+udivmodsi4.o:		${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/udivmodsi4.S
+aeabi_idivmod.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/aeabi_idivmod.S
+aeabi_uidivmod.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/aeabi_uidivmod.S
+aeabi_uldivmod.o:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/arm/aeabi_uldivmod.S
 
 # the following is required by pre_init.c
 strncmp.o:	${NETBSDSRCDIR}/common/lib/libc/string/strncmp.c

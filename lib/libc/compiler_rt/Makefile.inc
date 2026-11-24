@@ -1,6 +1,6 @@
 # $NetBSD: Makefile.inc,v 1.27 2014/09/03 19:29:14 matt Exp $
 
-COMPILER_RT_SRCDIR=	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist
+COMPILER_RT_SRCDIR=	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt
 
 .if ${LIBC_MACHINE_ARCH} == "powerpc" || ${LIBC_MACHINE_ARCH} == "powerpc64"
 COMPILER_RT_CPU_DIR=	${COMPILER_RT_SRCDIR}/lib/builtins/ppc

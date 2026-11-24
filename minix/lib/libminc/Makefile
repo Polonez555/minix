@@ -133,8 +133,8 @@ CPPFLAGS.sha2.c+=	-I${NETBSDSRCDIR}/sys
 	udivdi3.o umoddi3.o umodsi3.o udivsi3.o \
 	udivmoddi4.o divsi3.o modsi3.o divmoddi4.o \
 	divmodsi4.o udivmodsi4.o #qdivrem.o lshldi3.o 
-${f} ${f:C/\.o/.bc/}:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/${f:C/\.o/.c/}
-${f} ${f:C/\.o/.go/}:	${NETBSDSRCDIR}/sys/external/bsd/compiler_rt/dist/lib/builtins/${f:C/\.o/.c/}
+${f} ${f:C/\.o/.bc/}:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/${f:C/\.o/.c/}
+${f} ${f:C/\.o/.go/}:	${NETBSDSRCDIR}/external/bsd/llvm/dist/compiler-rt/lib/builtins/${f:C/\.o/.c/}
 OBJS+=	${f}
 CLEANFILES+= ${f}
 
