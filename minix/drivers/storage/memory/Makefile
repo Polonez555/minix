@@ -23,7 +23,11 @@ touch-genfiles:
 
 .mfs.o:
 	${_MKTARGET_CREATE}
-	${OBJCOPY} -Ibinary -B${MACHINE_CPU} -O${MACHINE_GNU_PLATFORM} $< $@
+	${OBJCOPY} -Ibinary -B${MACHINE_CPU} -O${OBJCOPY_ELF.${MACHINE_CPU}} $< $@
+
+# ELF output formats as llvm-objcopy names them.
+OBJCOPY_ELF.i386=	elf32-i386
+OBJCOPY_ELF.arm=	elf32-littlearm
 
 CLEANFILES+=	../ramdisk/image
 # BJG - don't invoke parallel Makes
