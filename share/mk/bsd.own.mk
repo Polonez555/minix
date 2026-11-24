@@ -164,7 +164,6 @@ MKLLVM?=	yes
 
 .if ${MKLLVM:Uno} == "yes"
 HAVE_LLVM?=	yes
-MKBINUTILS?=	yes # We are installing clang, so trigger binutils.
 .endif # ${MKLLVM:Uno} == "yes"
 
 .if ${HAVE_LLVM:Dyes} == "yes"
@@ -175,8 +174,11 @@ HAVE_LIBGCC?=	no
 # or not.
 MKLIBCXX?=	yes # Build by default libc++
 
-# The default value of MKBINUTILS cannot be set before the previous test.
-MKBINUTILS?=	no
+# GNU binutils were replaced by the LLVM tools (lld, llvm-ar, llvm-objcopy...).
+.if ${MKBINUTILS:Uno} != "no"
+.error MKBINUTILS is no longer supported: the toolchain uses the LLVM tools
+.endif
+MKBINUTILS:=	no
 
 .endif # defined(__MINIX)
 
@@ -1079,22 +1081,8 @@ MACHINE_GNU_PLATFORM?=${MACHINE_GNU_ARCH}--netbsd
 # We have a simpler toolchain naming scheme
 MACHINE_GNU_PLATFORM:=${MACHINE_GNU_ARCH}-elf32-minix
 
-# We need to check for HAVE_GOLD after LD has been set
-.  if ${_HAVE_GOLD:U} == ""
-   _HAVE_GOLD!= (exec 2>&1; ${LD} --version || echo "")
-   _GOLD_MATCH:=${_HAVE_GOLD:Mgold}
-   _HAVE_GOLD:= ${_HAVE_GOLD:M[0-9]\.[0-9][0-9]}
-
-.    if ${_GOLD_MATCH} != "" && ${_HAVE_GOLD} != ""
-      HAVE_GOLD?= ${_HAVE_GOLD}
-
-# Without -Wl,--no-ctors-in-init-array, gold moves the constructors out of
-# .ctors into .init_array, which is bad on intel.
-      LDFLAGS+= -Wl,--no-ctors-in-init-array
-.    else
-      USE_BITCODE:=no
-.    endif
-.  endif # ${_HAVE_GOLD:U} == ""
+# The linker is ld.lld: there is no gold, and no bitcode linking for now.
+USE_BITCODE:=	no
 .endif # defined(__MINIX)
 
 .if !empty(MACHINE_ARCH:M*arm*)
@@ -1409,6 +1397,14 @@ MKDEBUGREG:=	no
 MKSYSDEBUG:=	no
 MKLIVEUPDATE:=	no
 .endif
+
+# MINIX: the bitcode passes (minix/llvm) are not ported to the current LLVM
+# yet, so MKBITCODE, MKMAGIC and MKASR are disabled for now.
+.for _var in MKBITCODE MKMAGIC MKASR
+.if ${${_var}} != "no"
+.error ${_var}=${${_var}} is not supported yet: the minix/llvm passes need porting
+.endif
+.endfor
 
 # MINIX: MKASR implies MKMAGIC
 .if ${MKASR} == "yes"
