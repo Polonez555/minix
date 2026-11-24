@@ -39,6 +39,12 @@ CFLAGS+=	${${ACTIVE_CC} == "clang":? -std=gnu99 :}
 CFLAGS+=	${${ACTIVE_CC} == "gcc":? -std=gnu99 :}
 CFLAGS+=	${${ACTIVE_CC} == "pcc":? -std=gnu99 :}
 
+.if defined(__MINIX)
+# MINIX was built with clang 3.6, which defaulted to -fcommon; newer clang
+# defaults to -fno-common.
+CFLAGS+=	${${ACTIVE_CC} == "clang":? -fcommon :}
+.endif # defined(__MINIX)
+
 .if defined(WARNS)
 CFLAGS+=	${${ACTIVE_CC} == "clang":? -Wno-sign-compare -Wno-pointer-sign :}
 .if ${WARNS} > 0
