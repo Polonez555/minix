@@ -1,0 +1,30 @@
+Use DWARF CFI exception tables for Minix on ARM, like NetBSD (chosen over ARM EHABI).
+
+diff --git a/llvm/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp b/llvm/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
+index d6abb2485a..641ecd21a3 100644
+--- a/llvm/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
++++ b/llvm/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
+@@ -93,6 +93,7 @@ ARMELFMCAsmInfo::ARMELFMCAsmInfo(const Triple &TheTriple,
+   // Exceptions handling
+   switch (TheTriple.getOS()) {
+   case Triple::NetBSD:
++  case Triple::Minix:
+     ExceptionsType = ExceptionHandling::DwarfCFI;
+     break;
+   default:
+diff --git a/llvm/lib/TargetParser/Triple.cpp b/llvm/lib/TargetParser/Triple.cpp
+index 2e4fe7ce70..7b1399d6cd 100644
+--- a/llvm/lib/TargetParser/Triple.cpp
++++ b/llvm/lib/TargetParser/Triple.cpp
+@@ -2526,8 +2526,9 @@ ExceptionHandling Triple::getDefaultExceptionHandling() const {
+ 
+   if (isARM() || isThumb()) {
+     if (isOSBinFormatELF()) {
+-      return getOS() == Triple::NetBSD ? ExceptionHandling::DwarfCFI
+-                                       : ExceptionHandling::ARM;
++      return (getOS() == Triple::NetBSD || getOS() == Triple::Minix)
++                 ? ExceptionHandling::DwarfCFI
++                 : ExceptionHandling::ARM;
+     }
+ 
+     return isOSDarwin() && !isWatchABI() ? ExceptionHandling::SjLj
