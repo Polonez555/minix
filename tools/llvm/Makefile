@@ -1,50 +1,59 @@
-#	$NetBSD: Makefile,v 1.20 2015/03/05 10:22:25 joerg Exp $
+#	MINIX: build the cross LLVM toolchain (clang, lld and the LLVM
+#	binary utilities) from the llvm-project submodule with CMake.
 
-.include <bsd.init.mk>
+.include <bsd.own.mk>
+.include "${NETBSDSRCDIR}/external/bsd/llvm/llvm.mk"
 
-#
-# Do *not* set HOSTPROG or HOSTLIB at this point otherwise
-# it will create a loop trying to extract the object directory.
-#
-.include "Makefile.inc"
-.include "${LLVM_TOPLEVEL}/lib/Makefile.inc"
+# Binary utilities installed under their GNU names, for the TOOL_*
+# variables in bsd.own.mk and for releasetools.
+LLVM_TOOL_LINKS= \
+	clang:clang clang++:clang clang-cpp:clang \
+	ld:ld.lld \
+	ar:llvm-ar ranlib:llvm-ranlib nm:llvm-nm \
+	objcopy:llvm-objcopy strip:llvm-strip objdump:llvm-objdump \
+	readelf:llvm-readelf size:llvm-size strings:llvm-strings
 
-realdepends realall: config/config.status need-dl need-terminfo
+LLVM_DISTRIBUTION= \
+	clang;clang-resource-headers;lld;llvm-ar;llvm-ranlib;llvm-nm; \
+	llvm-objcopy;llvm-strip;llvm-objdump;llvm-readobj;llvm-readelf; \
+	llvm-size;llvm-strings
 
-config/config.status: ${LLVM_SRCDIR}/configure
-	mkdir -p config
-	printf '#!/bin/sh\necho 2.7.3' > config/python
-	chmod 755 config/python
-	cd config && ${HOST_SH} ${LLVM_SRCDIR}/configure ${LLVM_CONFIGURE_ARGS} \
-	    --enable-optimized CC=${HOST_CC:Q} CXX=${HOST_CXX:Q} \
-	    --with-python=${.OBJDIR}/config/python
-# --disable-assertions
+CMAKE_ARGS= \
+	${LLVM_CMAKE_COMMON_ARGS} \
+	-DCMAKE_C_COMPILER=${HOST_CC:Q} \
+	-DCMAKE_CXX_COMPILER=${HOST_CXX:Q} \
+	-DCMAKE_INSTALL_PREFIX=${TOOLDIR} \
+	-DLLVM_DISTRIBUTION_COMPONENTS="${LLVM_DISTRIBUTION:ts}"
 
-need-dl:
-	printf '#include <dlfcn.h>\nint main(void){void *p; return dladdr(p, p);}' > need-dl.c
-	if ${HOST_CC} -o need-dl.out -D_GNU_SOURCE need-dl.c > /dev/null 2>&1; then \
-		echo > ${.TARGET}; \
-	elif ${HOST_CC} -o need-dl.out -D_GNU_SOURCE need-dl.c -ldl > /dev/null 2>&1; then \
-		echo -ldl > ${.TARGET}; \
-	else \
-		echo > ${.TARGET}; \
-	fi
+.configure_done: llvm-patches
+	${TOOL_CMAKE} -S ${LLVM_DIST}/llvm -B build ${CMAKE_ARGS}
+	@touch ${.TARGET}
 
-need-terminfo:
-	printf '#include <term.h>\nint main(void){return setupterm(0, 0, 0);}' > need-terminfo.c
-	for lib in tinfo terminfo ncurses curses; do \
-		if ${HOST_CC} -o need-terminfo.out need-terminfo.c -l$$lib > /dev/null 2>&1; then \
-			echo -l$$lib > ${.TARGET}; \
-			break; \
-		fi; \
-	done
+.build_done: .configure_done
+	${TOOL_NINJA} -C build distribution llvm-tblgen clang-tblgen
+	@touch ${.TARGET}
 
-CLEANFILES+=	need-dl need-dl.c need-dl.out need-terminfo need-terminfo.c need-terminfo.out
+.install_done: .build_done
+	# build.sh exports DESTDIR (the MINIX root); the tools go to TOOLDIR.
+	env DESTDIR= ${TOOL_NINJA} -C build install-distribution
+	mkdir -p ${TOOLDIR}/bin
+	${HOST_INSTALL_FILE} -m ${BINMODE} build/bin/llvm-tblgen \
+	    ${TOOLDIR}/bin/${_TOOL_PREFIX}llvm-tblgen
+	${HOST_INSTALL_FILE} -m ${BINMODE} build/bin/clang-tblgen \
+	    ${TOOLDIR}/bin/${_TOOL_PREFIX}clang-tblgen
+.for l in ${LLVM_TOOL_LINKS}
+	${HOST_INSTALL_SYMLINK} ${l:C/.*://} \
+	    ${TOOLDIR}/bin/${MACHINE_GNU_PLATFORM}-${l:C/:.*//}
+.endfor
+	@touch ${.TARGET}
 
-cleandir: cleandir-llvm
+.if ${USETOOLS} == "yes"
+realall: .build_done
+realinstall: .install_done
+.endif
 
-cleandir-llvm: .PHONY
-	test ! -d config || rm -r config
-	rm -f need-dl need-dl.tmp
+clean: clean.llvm
+clean.llvm: .PHONY
+	-rm -rf .*_done build
 
 .include <bsd.hostprog.mk>
