@@ -1,0 +1,4 @@
+[submodule "external/bsd/llvm/dist"]
+	path = external/bsd/llvm/dist
+	url = https://github.com/llvm/llvm-project.git
+	shallow = true
