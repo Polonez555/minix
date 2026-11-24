@@ -38,10 +38,6 @@ TOOLCHAIN_BITS+= mpc .WAIT
 . endif
 .endif
 
-.if ${TOOLCHAIN_MISSING} == "no"
-TOOLCHAIN_BITS+= binutils .WAIT
-.endif
-
 .if defined(HAVE_GCC) && ${HAVE_GCC} > 0
 . if ${TOOLCHAIN_MISSING} == "no"
 TOOLCHAIN_BITS+= gcc
