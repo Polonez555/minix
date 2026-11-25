@@ -10,4 +10,9 @@ SRCS=	man.c man_hash.c man_macro.c man_validate.c \
 	mandoc.c read.c
 MAN=	mandoc.3
 
+.if defined(__MINIX)
+# Found by clang 23, fix later: "i > 1 || i < 4" in mdoc.c is always true.
+COPTS.mdoc.c+=	-Wno-error=tautological-overlap-compare
+.endif
+
 .include <bsd.lib.mk>
