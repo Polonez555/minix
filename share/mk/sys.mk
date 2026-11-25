@@ -82,7 +82,16 @@ CTFFLAGS	?=	-g -L VERSION
 CTFMFLAGS	?=	-t -g -L VERSION
 
 CXX?=		c++
-CXXFLAGS?=	${CFLAGS:N-Wno-traditional:N-Wstrict-prototypes:N-Wmissing-prototypes:N-Wno-pointer-sign:N-ffreestanding:N-std=gnu[0-9][0-9]:N-Wold-style-definition:N-Wno-format-zero-length}
+.if defined(__MINIX)
+# MINIX was built with clang 3.6, whose default C++ dialect was gnu++98
+# (newer clang defaults to gnu++17).  A -std= set by a Makefile comes later
+# on the command line and still wins.
+_CXXSTD_DEFAULT=	-std=gnu++98
+# The current libc++ needs UINT32_C, SIZE_MAX etc. even before C++11, and
+# <stdint.h> only provides them to C++98 code when asked for.
+_CXXSTD_DEFAULT+=	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+.endif # defined(__MINIX)
+CXXFLAGS?=	${_CXXSTD_DEFAULT} ${CFLAGS:N-Wno-traditional:N-Wstrict-prototypes:N-Wmissing-prototypes:N-Wno-pointer-sign:N-ffreestanding:N-std=gnu[0-9][0-9]:N-Wold-style-definition:N-Wno-format-zero-length}
 
 __ALLSRC1=	${empty(DESTDIR):?${.ALLSRC}:${.ALLSRC:S|^${DESTDIR}|^destdir|}}
 __ALLSRC2=	${empty(MAKEOBJDIR):?${__ALLSRC1}:${__ALLSRC1:S|^${MAKEOBJDIR}|^obj|}}
