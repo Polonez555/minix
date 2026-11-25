@@ -550,6 +550,7 @@
 ./usr/libdata/debug/usr/lib/libblacklist.so.0.0.debug   minix-debug     debug
 ./usr/libdata/debug/usr/lib/libbz2.so.1.1.debug         minix-debug     debug
 ./usr/libdata/debug/usr/lib/libc++.so.1.0.debug         minix-debug     libcxx,debug
+./usr/libdata/debug/usr/lib/libc++abi.so.1.0.debug      minix-debug     libcxx,debug
 ./usr/libdata/debug/usr/lib/libc.so.12.197.debug        minix-debug     debug
 ./usr/libdata/debug/usr/lib/libcrypt.so.1.0.debug       minix-debug     debug
 ./usr/libdata/debug/usr/lib/libcrypto.so.8.4.debug      minix-debug     debug
@@ -595,6 +596,7 @@
 ./usr/libdata/debug/usr/lib/libstdc++.so.6.3.debug      minix-debug     libstdcxx,debug
 ./usr/libdata/debug/usr/lib/libsys.so.0.0.debug         minix-debug     debug
 ./usr/libdata/debug/usr/lib/libterminfo.so.1.0.debug    minix-debug     debug
+./usr/libdata/debug/usr/lib/libunwind.so.1.0.debug      minix-debug     libcxx,debug
 ./usr/libdata/debug/usr/lib/libutil.so.7.23.debug       minix-debug     debug
 ./usr/libdata/debug/usr/lib/libwrap.so.1.0.debug        minix-debug     debug
 ./usr/libdata/debug/usr/lib/libz.so.1.0.debug           minix-debug     debug
