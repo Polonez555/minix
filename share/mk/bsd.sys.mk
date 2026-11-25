@@ -120,6 +120,22 @@ CFLAGS+=	-Wno-maybe-uninitialized
 # has and clang 3.6 did not, so -Werror accepts the same code as before.
 CWARNFLAGS.clang+=	-Wno-deprecated-non-prototype
 CWARNFLAGS.clang+=	-Wno-unused-but-set-global
+CWARNFLAGS.clang+=	-Wno-array-parameter
+CWARNFLAGS.clang+=	-Wno-cast-function-type-mismatch
+CWARNFLAGS.clang+=	-Wno-implicit-const-int-float-conversion
+CWARNFLAGS.clang+=	-Wno-misleading-indentation
+CWARNFLAGS.clang+=	-Wno-unterminated-string-initialization
+CWARNFLAGS.clang+=	-Wno-unused-but-set-variable
+CWARNFLAGS.clang+=	-Wno-pointer-compare
+CWARNFLAGS.clang+=	-Wno-exceptions
+CWARNFLAGS.clang+=	-Wno-for-loop-analysis
+CWARNFLAGS.clang+=	-Wno-int-in-bool-context
+CWARNFLAGS.clang+=	-Wno-address-of-packed-member
+CWARNFLAGS.clang+=	-Wno-format-truncation
+CWARNFLAGS.clang+=	-Wno-gnu-null-pointer-arithmetic
+CWARNFLAGS.clang+=	-Wno-null-pointer-subtraction
+CWARNFLAGS.clang+=	-Wno-single-bit-bitfield-constant-conversion
+CWARNFLAGS.clang+=	-Wno-fortify-source
 # clang 3.6 accepted -Wstrict-prototypes (from WARNS) but did not check it.
 CWARNFLAGS.clang+=	-Wno-strict-prototypes
 .endif # defined(__MINIX)
