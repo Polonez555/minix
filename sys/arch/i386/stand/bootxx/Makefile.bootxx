@@ -2,10 +2,6 @@
 
 S=	${.CURDIR}/../../../../..
 
-AFLAGS.bootxx.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.label.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.pbr.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-
 PIE_CFLAGS=
 PIE_LDFLAGS=
 PIE_AFLAGS=
@@ -40,6 +36,10 @@ BINMODE=444
 .PATH:	${.CURDIR}/.. ${.CURDIR}/../../lib
 
 LDFLAGS+= -nostdlib -Wl,-N -Wl,-e,start
+.if defined(__MINIX)
+# ld.lld refuses addresses below its default image base without this.
+LDFLAGS+=	-Wl,--image-base=0
+.endif # defined(__MINIX)
 CPPFLAGS+= -DBOOTXX
 # CPPFLAGS+= -D__daddr_t=int32_t
 CPPFLAGS+= -I ${.CURDIR}/../../lib -I ${.OBJDIR}
@@ -135,10 +135,10 @@ ${PROG}: ${OBJS} ${LIBLIST} ${LDSCRIPT}
 	${_MKTARGET_LINK}
 .if defined(__MINIX)
 	${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,--section-start=.text=${PRIMARY_LOAD_ADDRESS} \
-		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,-cref ${OBJS} ${LIBLIST}
+		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,--cref ${OBJS} ${LIBLIST}
 .else
 	${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,-Ttext,${PRIMARY_LOAD_ADDRESS} \
-		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,-cref ${OBJS} ${LIBLIST}
+		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,--cref ${OBJS} ${LIBLIST}
 .endif # defined(__MINIX)
 	${OBJCOPY} -O binary ${PROG}.sym ${PROG}
 	@ sz=$$(${TOOL_STAT} -f '%z' ${PROG}); \

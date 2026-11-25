@@ -160,10 +160,9 @@ if [ "$COPY" -ne 1 ]
 then
 	echo "Retrieving latest minix repo from $REPO branch $GITBRANCH."
 	srcdir=$RELEASEDIR/usr/src
-	git clone -b $GITBRANCH $REPO $srcdir
+	git clone --recurse-submodules --shallow-submodules -b $GITBRANCH $REPO $srcdir
 	echo "Triggering fetch scripts"
 	( cd $srcdir && sh ./gnu/dist/fetch.sh )
-	( cd $srcdir && sh ./external/gpl3/binutils/fetch.sh )
 	if [ "$REVTAG" ]
 	then	echo "Doing checkout of $REVTAG."
 		(cd $srcdir && git checkout $REVTAG )

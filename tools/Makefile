@@ -38,10 +38,6 @@ TOOLCHAIN_BITS+= mpc .WAIT
 . endif
 .endif
 
-.if ${TOOLCHAIN_MISSING} == "no"
-TOOLCHAIN_BITS+= binutils .WAIT
-.endif
-
 .if defined(HAVE_GCC) && ${HAVE_GCC} > 0
 . if ${TOOLCHAIN_MISSING} == "no"
 TOOLCHAIN_BITS+= gcc
@@ -141,19 +137,7 @@ SUBDIR+= .WAIT config
 .endif # defined(__MINIX)
 
 .if ${MKLLVM} != "no"
-SUBDIR+= \
-	llvm .WAIT \
-	llvm-lib/libLLVMSupport llvm-lib/libLLVMTableGen .WAIT \
-	llvm-tblgen llvm-clang-tblgen .WAIT \
-	llvm-include .WAIT \
-	llvm-lib .WAIT \
-	llvm-clang
-. if ${MKLLD} != "no"
-SUBDIR+=	llvm-lld
-. endif
-. if ${MKMCLINKER} != "no"
-SUBDIR+=	llvm-mcld
-. endif
+SUBDIR+=	llvm
 .endif
 
 .if ${MKMAN} != "no" || ${MKDOC} != "no" || ${MKHTML} != "no"

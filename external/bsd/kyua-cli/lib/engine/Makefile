@@ -32,4 +32,10 @@ SRCS+=		debug_test.cpp \
 .if defined(__MINIX)
 NOCLANGERROR=	yes
 .endif # defined(__MINIX)
+.if defined(__MINIX)
+# filters.cpp uses std::inserter without <iterator>, which the old
+# libc++ included indirectly.
+COPTS.filters.cpp+=	-include iterator
+.endif
+
 .include <bsd.lib.mk>

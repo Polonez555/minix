@@ -1,0 +1,60 @@
+Add clang MinixTargetInfo for i386 and ARM (port of the clang 3.6 MINIX target).
+__ARM_DWARF_EH__ is no longer hard-coded; clang defines it from the exception model.
+
+diff --git a/clang/lib/Basic/Targets.cpp b/clang/lib/Basic/Targets.cpp
+index 8c01cfca8c..9e2639fdc3 100644
+--- a/clang/lib/Basic/Targets.cpp
++++ b/clang/lib/Basic/Targets.cpp
+@@ -231,6 +231,8 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
+       return std::make_unique<FreeBSDTargetInfo<ARMleTargetInfo>>(Triple, Opts);
+     case llvm::Triple::Fuchsia:
+       return std::make_unique<FuchsiaTargetInfo<ARMleTargetInfo>>(Triple, Opts);
++    case llvm::Triple::Minix:
++      return std::make_unique<MinixTargetInfo<ARMleTargetInfo>>(Triple, Opts);
+     case llvm::Triple::NetBSD:
+       return std::make_unique<NetBSDTargetInfo<ARMleTargetInfo>>(Triple, Opts);
+     case llvm::Triple::OpenBSD:
+@@ -590,6 +592,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
+     case llvm::Triple::DragonFly:
+       return std::make_unique<DragonFlyBSDTargetInfo<X86_32TargetInfo>>(Triple,
+                                                                         Opts);
++    case llvm::Triple::Minix:
++      return std::make_unique<MinixTargetInfo<X86_32TargetInfo>>(Triple,
++                                                                 Opts);
+     case llvm::Triple::NetBSD:
+       return std::make_unique<NetBSDI386TargetInfo>(Triple, Opts);
+     case llvm::Triple::OpenBSD:
+diff --git a/clang/lib/Basic/Targets/OSTargets.h b/clang/lib/Basic/Targets/OSTargets.h
+index 7c4666606d..a7e9b72537 100644
+--- a/clang/lib/Basic/Targets/OSTargets.h
++++ b/clang/lib/Basic/Targets/OSTargets.h
+@@ -483,6 +483,29 @@ public:
+   }
+ };
+ 
++// Minix Target
++template <typename Target>
++class LLVM_LIBRARY_VISIBILITY MinixTargetInfo : public OSTargetInfo<Target> {
++protected:
++  void getOSDefines(const LangOptions &Opts, const llvm::Triple &Triple,
++                    MacroBuilder &Builder) const override {
++    // Minix defines; list based off of gcc output
++    Builder.defineMacro("__minix", "3");
++    Builder.defineMacro("__minix__", "3");
++    Builder.defineMacro("__Minix__", "3");
++    Builder.defineMacro("__unix__");
++    Builder.defineMacro("__ELF__");
++    if (Opts.POSIXThreads)
++      Builder.defineMacro("_POSIX_THREADS");
++  }
++
++public:
++  MinixTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
++      : OSTargetInfo<Target>(Triple, Opts) {
++    this->MCountName = "_mcount";
++  }
++};
++
+ // OpenBSD Target
+ template <typename Target>
+ class LLVM_LIBRARY_VISIBILITY OpenBSDTargetInfo : public OSTargetInfo<Target> {

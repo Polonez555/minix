@@ -22,4 +22,9 @@ CLEANFILES+=	error.c signal.c
 
 WARNS?=	5
 
+.if defined(__MINIX)
+# clang 23: the "!" normalises sigismember() on purpose (see pm.c).
+COPTS.pm.c+=	-Wno-error=logical-not-parentheses
+.endif
+
 .include <bsd.prog.mk>

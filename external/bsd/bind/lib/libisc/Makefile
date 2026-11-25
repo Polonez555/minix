@@ -51,4 +51,10 @@ CPPFLAGS.net.c=	-Wno-error
 SRCS+=		ipv6.c
 .endif
 
+.if defined(__MINIX)
+# clang 23: EMPTY_TRANSLATION_UNIT is an unused, self-calling dummy on purpose.
+COPTS.condition.c+=	-Wno-error=infinite-recursion
+COPTS.mutex.c+=		-Wno-error=infinite-recursion
+.endif
+
 .include <bsd.lib.mk>

@@ -17,6 +17,10 @@ INCS+=	unwind.h
 #COPTS+=-std=gnu99
 
 LIBDPLIBS+= elf	${NETBSDSRCDIR}/external/bsd/elftoolchain/lib/libelf
+.if defined(__MINIX)
+# MINIX: _Unwind_Backtrace comes from LLVM's libunwind, not from libc.
+LDADD+=	-lunwind
+.endif
 
 LIB=execinfo
 SRCS=symtab.c backtrace.c

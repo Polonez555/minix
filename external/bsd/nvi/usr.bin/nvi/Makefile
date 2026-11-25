@@ -125,4 +125,9 @@ WARNS=	4
 COPTS.exf.c += -Wno-format-nonliteral
 COPTS.msg.c += -Wno-format-nonliteral
 
+.if defined(__MINIX)
+# clang 23: OI() compares pointers on purpose, not a bug.
+COPTS.options.c+=	-Wno-error=string-compare
+.endif
+
 .include <bsd.prog.mk>

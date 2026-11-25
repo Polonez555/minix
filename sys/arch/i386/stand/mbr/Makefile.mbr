@@ -30,6 +30,10 @@ BINMODE=	444
 .PATH:		${.CURDIR}/..
 
 LDFLAGS+=	-nostdlib -Wl,-e,start
+.if defined(__MINIX)
+# ld.lld refuses addresses below its default image base without this.
+LDFLAGS+=	-Wl,--image-base=0
+.endif # defined(__MINIX)
 CPPFLAGS+=	-I. -I${.CURDIR}/../../lib -I${S}
 
 .if ${MACHINE_ARCH} == "x86_64"
@@ -45,9 +49,6 @@ DPSRCS+=	machine x86
 CLEANFILES+=	${PROG}.tmp
 
 LOADADDR=	0x8800
-
-AFLAGS.mbr.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
-AFLAGS.gpt.S= ${${ACTIVE_CC} == "clang":?-no-integrated-as:}
 
 .if defined(__MINIX)
 CPPFLAGS+= -DLOADADDR=${LOADADDR}

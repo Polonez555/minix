@@ -1,0 +1,35 @@
+Add the Minix OS to the LLVM target triple (Triple::Minix, "minix").
+
+diff --git a/llvm/include/llvm/TargetParser/Triple.h b/llvm/include/llvm/TargetParser/Triple.h
+index c5af232523..a8833f730f 100644
+--- a/llvm/include/llvm/TargetParser/Triple.h
++++ b/llvm/include/llvm/TargetParser/Triple.h
+@@ -310,6 +310,7 @@ public:
+     Lv2, // PS3
+     MacOSX,
+     Managarm,
++    Minix,
+     NetBSD,
+     OpenBSD,
+     Solaris,
+@@ -744,6 +745,8 @@ public:
+ 
+   bool isOSOpenBSD() const { return getOS() == Triple::OpenBSD; }
+ 
++  bool isOSMinix() const { return getOS() == Triple::Minix; }
++
+   bool isOSFreeBSD() const { return getOS() == Triple::FreeBSD; }
+ 
+   bool isOSFuchsia() const { return getOS() == Triple::Fuchsia; }
+diff --git a/llvm/include/llvm/TargetParser/TripleName.def b/llvm/include/llvm/TargetParser/TripleName.def
+index bbc03b3188..d9f9da3d0d 100644
+--- a/llvm/include/llvm/TargetParser/TripleName.def
++++ b/llvm/include/llvm/TargetParser/TripleName.def
+@@ -40,6 +40,7 @@ TRIPLE_OS(Lv2, "lv2")
+ TRIPLE_OS(MacOSX, "macosx")
+ TRIPLE_OS_ALIAS(MacOSX, "macos")
+ TRIPLE_OS(Managarm, "managarm")
++TRIPLE_OS(Minix, "minix")
+ TRIPLE_OS(NetBSD, "netbsd")
+ TRIPLE_OS(OpenBSD, "openbsd")
+ TRIPLE_OS(Solaris, "solaris")

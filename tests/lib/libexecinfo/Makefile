@@ -12,6 +12,9 @@ TESTS_C+=	t_backtrace
 STRIPFLAG=
 
 LDADD+=		-lexecinfo -lelf
+.if defined(__MINIX)
+LDADD+=		-lunwind
+.endif
 DPADD+=		${LIBEXECINFO} ${LIBELF}
 
 COPTS.t_backtrace.c=	-Wno-stack-protector

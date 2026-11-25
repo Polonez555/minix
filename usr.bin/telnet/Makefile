@@ -86,4 +86,9 @@ DPADD+=	${LIBPAM} ${PAM_STATIC_DPADD}
 COPTS.${f}.c+=  -Wno-pointer-sign
 .endfor
 
+.if defined(__MINIX)
+# clang 23 (not 3.6): byte values stored in char on purpose, not a bug.
+COPTS.commands.c+=	-Wno-error=constant-conversion
+.endif
+
 .include <bsd.prog.mk>

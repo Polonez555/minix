@@ -36,4 +36,10 @@ SRCS=		application.cpp \
 		ui.cpp \
 		user.cpp
 
+.if defined(__MINIX)
+# test-program.cpp uses std::back_insert_iterator without <iterator>, which
+# the old libc++ included indirectly.
+COPTS.test-program.cpp+=	-include iterator
+.endif
+
 .include <bsd.lib.mk>

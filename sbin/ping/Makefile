@@ -19,4 +19,9 @@ DPADD+= ${LIBIPSEC}
 COPTS.ping.c=-O0
 .endif
 
+.if defined(__MINIX)
+# clang 23 (not 3.6): byte values stored in char on purpose, not a bug.
+COPTS.ping.c+=	-Wno-error=constant-conversion
+.endif
+
 .include <bsd.prog.mk>

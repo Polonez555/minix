@@ -1,0 +1,33 @@
+clang driver: default Minix/ARM to armv7 + EABI and ignore -m32/-m64 on Minix, as the MINIX clang 3.6 driver did.
+
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index e606cdc4c1..b01974bbe1 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -662,6 +662,16 @@ static llvm::Triple computeTargetTriple(const Driver &D, StringRef TargetTriple,
+     }
+   }
+ 
++  // Minix/ARM defaults to ARMv7 and the EABI environment, as the MINIX
++  // clang 3.6 driver did.
++  if (Target.isOSMinix() && (Target.getArch() == llvm::Triple::arm ||
++                             Target.getArch() == llvm::Triple::thumb)) {
++    if (Target.getEnvironment() == llvm::Triple::UnknownEnvironment)
++      Target.setEnvironment(llvm::Triple::EABI);
++    if (Target.getArchName() == "arm")
++      Target.setArchName("armv7");
++  }
++
+   // Skip further flag support on OSes which don't support '-m32' or '-m64'.
+   if (Target.getArch() == llvm::Triple::tce)
+     return Target;
+@@ -708,7 +718,8 @@ static llvm::Triple computeTargetTriple(const Driver &D, StringRef TargetTriple,
+   Arg *A = Args.getLastArg(options::OPT_m64, options::OPT_mx32,
+                            options::OPT_m32, options::OPT_m16,
+                            options::OPT_maix32, options::OPT_maix64);
+-  if (A) {
++  // Minix has no '-m32'/'-m64' variants; ignore these flags there.
++  if (A && !Target.isOSMinix()) {
+     llvm::Triple::ArchType AT = llvm::Triple::UnknownArch;
+ 
+     if (A->getOption().matches(options::OPT_m64) ||

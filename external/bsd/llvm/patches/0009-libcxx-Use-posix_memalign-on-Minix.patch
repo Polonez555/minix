@@ -1,0 +1,16 @@
+libc++: MINIX libc has no aligned_alloc(); use posix_memalign() as for older Android.
+
+diff --git a/libcxx/src/include/aligned_alloc.h b/libcxx/src/include/aligned_alloc.h
+index 24ca26ce04..fc10bcbefb 100644
+--- a/libcxx/src/include/aligned_alloc.h
++++ b/libcxx/src/include/aligned_alloc.h
+@@ -31,7 +31,8 @@ inline _LIBCPP_HIDE_FROM_ABI void* __libcpp_aligned_alloc(std::size_t __alignmen
+   return ::_aligned_malloc(__size, __alignment);
+ 
+ // Android only provides aligned_alloc when targeting API 28 or higher.
+-#  elif !defined(__ANDROID__) || __ANDROID_API__ >= 28
++// MINIX only has posix_memalign.
++#  elif !defined(__minix) && (!defined(__ANDROID__) || __ANDROID_API__ >= 28)
+   // aligned_alloc() requires that __size is a multiple of __alignment,
+   // but for C++ [new.delete.general], only states "if the value of an
+   // alignment argument passed to any of these functions is not a valid

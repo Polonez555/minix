@@ -111,9 +111,6 @@ SUBDIR+= pkgconfig
 .endif
 .endif # defined(__MINIX)
 .include "${.CURDIR}/sys/Makefile.inc"
-.if ${HAVE_LIBGCC_EH} == "no"
-.include "${NETBSDSRCDIR}/sys/lib/libunwind/Makefile.inc"
-.endif
 .include "${.CURDIR}/uuid/Makefile.inc"
 .if (${MKYP} != "no")
 .include "${.CURDIR}/yp/Makefile.inc"

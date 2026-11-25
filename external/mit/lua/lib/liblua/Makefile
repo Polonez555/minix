@@ -21,4 +21,9 @@ LIBDPLIBS+=	m		${NETBSDSRCDIR}/lib/libm
 
 .PATH:		${NETBSDSRCDIR}/external/mit/lua/dist/src
 
+.if defined(__MINIX)
+# clang 23: "LUA_SIGNATURE + 1" skips the first character on purpose.
+COPTS.lundump.c+=	-Wno-error=string-plus-int
+.endif
+
 .include <bsd.lib.mk>

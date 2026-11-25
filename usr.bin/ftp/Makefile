@@ -41,4 +41,9 @@ CPPFLAGS+= -DINET6
 cmds.o fetch.o: version.h
 main.o:	ftp_var.h
 
+.if defined(__MINIX)
+# clang 23 (not 3.6): byte values stored in char on purpose, not a bug.
+COPTS.ftp.c+=	-Wno-error=constant-conversion
+.endif
+
 .include <bsd.prog.mk>

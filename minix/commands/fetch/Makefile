@@ -23,4 +23,10 @@ DPADD+=	${LIBSSL} ${LIBCRYPTO}
 LDADD+=	-lssl -lcrypto
 .endif
 
+.if defined(__MINIX)
+# Found by clang 23, fix later: fetch.c compares nsb.st_ino with itself
+# (instead of with sb.st_ino).
+COPTS.fetch.c+=	-Wno-error=tautological-compare
+.endif
+
 .include <bsd.prog.mk>

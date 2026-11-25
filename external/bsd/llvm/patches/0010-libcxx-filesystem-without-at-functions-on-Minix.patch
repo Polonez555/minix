@@ -1,0 +1,27 @@
+libc++ filesystem: MINIX has no fchmodat(), openat() or unlinkat(); use chmod() and the
+directory-iterator remove_all, as on Windows and z/OS.
+
+diff --git a/libcxx/src/filesystem/operations.cpp b/libcxx/src/filesystem/operations.cpp
+index cd55b797e9..3f656c40cc 100644
+--- a/libcxx/src/filesystem/operations.cpp
++++ b/libcxx/src/filesystem/operations.cpp
+@@ -755,7 +755,8 @@ void __permissions(const path& p, perms prms, perm_options opts, error_code* ec)
+   }
+   const auto real_perms = static_cast<detail::ModeT>(prms & perms::mask);
+ 
+-#if defined(AT_SYMLINK_NOFOLLOW) && defined(AT_FDCWD)
++// MINIX defines AT_* but has no fchmodat().
++#if defined(AT_SYMLINK_NOFOLLOW) && defined(AT_FDCWD) && !defined(__minix)
+   const int flags = set_sym_perms ? AT_SYMLINK_NOFOLLOW : 0;
+   if (detail::fchmodat(AT_FDCWD, p.c_str(), real_perms, flags) == -1) {
+     return err.report(detail::get_last_error());
+@@ -819,7 +820,8 @@ bool __remove(const path& p, error_code* ec) {
+ //
+ // The second implementation is used on platforms where `openat()` & friends are available,
+ // and it threads file descriptors through recursive calls to avoid such race conditions.
+-#if defined(_LIBCPP_WIN32API) || defined(__MVS__)
++// MINIX has no openat() or unlinkat().
++#if defined(_LIBCPP_WIN32API) || defined(__MVS__) || defined(__minix)
+ #  define REMOVE_ALL_USE_DIRECTORY_ITERATOR
+ #endif
+ 

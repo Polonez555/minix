@@ -24,4 +24,9 @@ CFLAGS+= -Wall -Wextra -Wno-sign-compare -Werror
 DPADD+=	${LIBSYS} ${LIBTIMERS} ${LIBEXEC}
 LDADD+=	-lsys -ltimers -lexec -lmthread
 
+.if defined(__MINIX)
+# clang 23: FAILCHECK() ends in an empty "while(0)"; harmless.
+COPTS.exec.c+=	-Wno-error=empty-body
+.endif
+
 .include <minix.service.mk>

@@ -48,4 +48,11 @@ ksh.1: ksh.Man mkman
 	${HOST_SH} $(.CURDIR)/mkman ksh $(.CURDIR)/ksh.Man >ksh.1.tmp \
 	    && mv ksh.1.tmp ksh.1
 
+.if defined(__MINIX)
+# clang 23 (not 3.6): byte values stored in char on purpose, not a bug.
+COPTS.eval.c+=	-Wno-error=constant-conversion
+# clang 23: '"..." + 1 - inquote' picks a substring on purpose.
+COPTS.misc.c+=	-Wno-error=string-plus-int
+.endif
+
 .include <bsd.prog.mk>
