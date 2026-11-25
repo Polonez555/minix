@@ -1,0 +1,32 @@
+# MINIX: CMake toolchain file for cross-building LLVM code for MINIX with
+# the cross toolchain from tools/llvm.  cross.mk fills in the @...@ values.
+
+set(CMAKE_SYSTEM_NAME Minix)
+set(CMAKE_SYSTEM_PROCESSOR @MACHINE_ARCH@)
+set(CMAKE_SYSROOT @DESTDIR@)
+
+# Platform/Minix.cmake lives next to this file's template.
+list(APPEND CMAKE_MODULE_PATH @LLVM_TOPLEVEL@/cmake)
+
+set(CMAKE_C_COMPILER @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-clang)
+set(CMAKE_CXX_COMPILER @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-clang++)
+set(CMAKE_ASM_COMPILER @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-clang)
+set(CMAKE_AR @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-ar)
+set(CMAKE_RANLIB @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-ranlib)
+set(CMAKE_NM @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-nm)
+set(CMAKE_OBJCOPY @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-objcopy)
+set(CMAKE_OBJDUMP @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-objdump)
+set(CMAKE_READELF @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-readelf)
+set(CMAKE_STRIP @TOOLDIR@/bin/@MACHINE_GNU_PLATFORM@-strip)
+
+# Per-architecture flags that bsd.own.mk adds for every MINIX object.
+set(CMAKE_C_FLAGS_INIT "@MINIX_CPUFLAGS@")
+set(CMAKE_CXX_FLAGS_INIT "@MINIX_CPUFLAGS@")
+set(CMAKE_ASM_FLAGS_INIT "@MINIX_CPUFLAGS@")
+
+# Find headers and libraries only in the MINIX root, host programs only
+# on the host.
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
