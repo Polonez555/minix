@@ -180,7 +180,6 @@ SUBDIR+=	../external/mit/lua/lib # depends on libm
 SUBDIR+=	libcurses	# depends on libterminfo
 #SUBDIR+=	libdm		# depends on libprop
 SUBDIR+=	libedit		# depends on libterminfo
-SUBDIR+=	libexecinfo 	# depends on libelf
 #SUBDIR+=	libppath	# depends on libprop
 #SUBDIR+=	libperfuse	# depends on libpuffs
 #SUBDIR+=	libquota	# depends on libprop and librpcsvc
@@ -225,6 +224,8 @@ SUBDIR+=	../external/gpl3/${EXTERNAL_GCC_SUBDIR}/lib/libsupc++
 
 #==================== 2nd library dependency barrier ====================
 SUBDIR+=	.WAIT
+
+SUBDIR+=	libexecinfo 	# depends on libelf and libunwind (libc++)
 
 SANITIZER_DIR=../external/gpl3/${EXTERNAL_GCC_SUBDIR}/lib/libasan
 .if exists(${SANITIZER_DIR})
