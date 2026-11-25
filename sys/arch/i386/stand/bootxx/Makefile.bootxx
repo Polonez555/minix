@@ -135,10 +135,10 @@ ${PROG}: ${OBJS} ${LIBLIST} ${LDSCRIPT}
 	${_MKTARGET_LINK}
 .if defined(__MINIX)
 	${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,--section-start=.text=${PRIMARY_LOAD_ADDRESS} \
-		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,-cref ${OBJS} ${LIBLIST}
+		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,--cref ${OBJS} ${LIBLIST}
 .else
 	${CC} -o ${PROG}.sym ${LDFLAGS} -Wl,-Ttext,${PRIMARY_LOAD_ADDRESS} \
-		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,-cref ${OBJS} ${LIBLIST}
+		-T ${LDSCRIPT} -Wl,-Map,${PROG}.map -Wl,--cref ${OBJS} ${LIBLIST}
 .endif # defined(__MINIX)
 	${OBJCOPY} -O binary ${PROG}.sym ${PROG}
 	@ sz=$$(${TOOL_STAT} -f '%z' ${PROG}); \
