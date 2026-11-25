@@ -17,4 +17,9 @@ LDADD+=	-lsys -lexec
 
 CPPFLAGS+=	-I${NETBSDSRCDIR}/minix
 
+.if defined(__MINIX)
+# clang 23: %s gets a void * that points to a string; harmless.
+COPTS.utility.c+=	-Wno-error=format
+.endif
+
 .include <minix.service.mk>
