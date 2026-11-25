@@ -18,6 +18,11 @@ CLEANFILES+= atf-version.txt atf-version-real.txt
 
 CPPFLAGS+=	-DHAVE_CONFIG_H
 
+.if defined(__MINIX)
+# clang 23 (not 3.6) reports the unused private field in dist/tools/fs.hpp.
+CXXFLAGS+=	-Wno-error=unused-private-field
+.endif
+
 # Not all source files need these settings, but it's just easier to
 # set them in all cases.
 CPPFLAGS+=	-DATF_ARCH=\"${MACHINE_ARCH}\"
