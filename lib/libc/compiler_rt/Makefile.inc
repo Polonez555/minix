@@ -30,7 +30,9 @@ LIBC_MACHINE_CPU?=      ${MACHINE_CPU}
 # Implemented on top of our atomic interface.
 #GENERIC_SRCS+= atomic.c
 
-.if ${HAVE_LIBGCC_EH} == "no"
+.if ${HAVE_LIBGCC_EH} == "no" && !defined(__MINIX)
+# MINIX: the unwinder is LLVM's libunwind, outside libc, and libc.so is
+# linked with -z defs, so the personality routine cannot be in libc.
 GENERIC_SRCS+= \
 	gcc_personality_v0.c
 .endif
@@ -210,12 +212,34 @@ GENERIC_SRCS+= \
 	umoddi3.c
 .endif
 
-GENERIC_SRCS+= \
+PROFILE_SRCS= \
 	GCDAProfiling.c \
 	InstrProfiling.c \
 	InstrProfilingBuffer.c \
 	InstrProfilingFile.c \
 	InstrProfilingPlatformOther.c
+.if defined(__MINIX)
+# The profile runtime of the current compiler-rt is split into more files.
+PROFILE_SRCS+= \
+	InstrProfilingInternal.c \
+	InstrProfilingMerge.c \
+	InstrProfilingMergeFile.c \
+	InstrProfilingNameVar.c \
+	InstrProfilingUtil.c \
+	InstrProfilingValue.c \
+	InstrProfilingVersionVar.c \
+	InstrProfilingWriter.c
+.endif # defined(__MINIX)
+GENERIC_SRCS+=	${PROFILE_SRCS}
+
+# The profile runtime includes <profile/instr_prof_interface.h>.
+.for src in ${PROFILE_SRCS}
+CPPFLAGS.${src}+=	-I${COMPILER_RT_SRCDIR}/include
+.if defined(__MINIX)
+# What compiler-rt's CMake would find on MINIX.
+CPPFLAGS.${src}+=	-DCOMPILER_RT_HAS_UNAME=1 -DCOMPILER_RT_HAS_FCNTL_LCK=1
+.endif
+.endfor
 
 .if ${LIBC_MACHINE_ARCH} == "powerpc" || ${LIBC_MACHINE_ARCH} == "powerpc64"
 GENERIC_SRCS+= \
