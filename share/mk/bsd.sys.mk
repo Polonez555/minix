@@ -115,6 +115,15 @@ CFLAGS+=	-Wno-maybe-uninitialized
 .endif
 .endif
 
+.if defined(__MINIX)
+# MINIX was built with clang 3.6.  Turn off the warnings that newer clang
+# has and clang 3.6 did not, so -Werror accepts the same code as before.
+CWARNFLAGS.clang+=	-Wno-deprecated-non-prototype
+CWARNFLAGS.clang+=	-Wno-unused-but-set-global
+# clang 3.6 accepted -Wstrict-prototypes (from WARNS) but did not check it.
+CWARNFLAGS.clang+=	-Wno-strict-prototypes
+.endif # defined(__MINIX)
+
 CWARNFLAGS+=	${CWARNFLAGS.${ACTIVE_CC}}
 
 CPPFLAGS+=	${AUDIT:D-D__AUDIT__}
